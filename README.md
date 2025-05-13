@@ -42,6 +42,7 @@ python inference.py --image_path sample_images/eye_lesion.jpg --model_path check
 左：原始眼底图像 | 中：真实病变区域掩码 | 右：模型分割结果
 
 临床应用建议
+
 本系统为辅助诊断工具，最终诊断应由专业眼科医生确认
 建议对模型输出的高风险区域进行重点关注
 可结合其他临床检查结果进行综合判断
