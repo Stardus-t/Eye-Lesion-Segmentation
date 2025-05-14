@@ -15,12 +15,23 @@ checkpoints=torch.load(weight_file,weights_only=True)
 model.load_state_dict(checkpoints['model_state_dict'])
 
 model.eval()
+ACC=0
+IOU=0
 with torch.no_grad():
     for image,mask in test_loader:
         image,mask=image.to(device),mask.to(device)
         output=model(image)
         preds=torch.sigmoid(output)
         preds=(preds>0.5).float()
+
+        correct=(preds==mask).sum()
+        acc=correct/mask.numel()
+        ACC+=acc
+
+        insection=(mask*preds).sum()
+        union=mask.sum()+preds.sum()-insection
+        iou=insection/union
+        IOU+=iou
 
         image_vis=image[0].cpu().permute(1,2,0).numpy()
         mask_vis=mask[0].cpu().numpy()
@@ -46,3 +57,5 @@ with torch.no_grad():
         plt.title('掩码叠加')
 
         plt.show()
+    print(f'准确率为：{ACC/len(test_loader)*100}%')
+    print(f'IoU为：{IOU/len(test_loader)*100}%')
