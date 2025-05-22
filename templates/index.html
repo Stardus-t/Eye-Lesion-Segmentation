@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能图像分割平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .bg-gradient-custom {
+                background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            }
+            .card-hover {
+                @apply hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-object-group text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-primary">智能图像分割平台</h1>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">首页</a>
+                <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">API文档</a>
+            </nav>
+            <button class="md:hidden text-gray-700 focus:outline-none" id="menu-toggle">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white border-t" id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium py-2">首页</a>
+                <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium py-2">API文档</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <section class="mb-12 text-center">
+            <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-4 text-dark text-shadow">
+                高精度图像分割解决方案
+            </h2>
+            <p class="text-gray-600 max-w-2xl mx-auto text-lg mb-8">
+                利用先进的Vision Transformer技术，实现像素级的图像分割。上传您的图像，体验AI驱动的精准分割效果。
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold mb-2 text-dark">上传图像</h3>
+                    <p class="text-gray-500 text-sm">支持JPG、PNG等常见图像格式</p>
+                </div>
+
+                <form id="upload-form" action="/segment" method="post" enctype="multipart/form-data" class="space-y-6">
+                    <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors duration-200" id="drop-area">
+                        <input type="file" name="image" id="image-upload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-cloud-upload text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-500 mb-2">拖放图像到此处，或</p>
+                            <button type="button" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 flex items-center">
+                                <i class="fa-solid fa-folder-open mr-2"></i> 选择图像
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="preview-container" class="hidden">
+                        <h4 class="font-medium mb-2 text-dark">预览</h4>
+                        <div class="relative rounded-lg overflow-hidden border border-gray-200">
+                            <img id="image-preview" src="" alt="预览图像" class="w-full h-auto max-h-64 object-contain">
+                            <button type="button" id="remove-image" class="absolute top-2 right-2 bg-white/80 hover:bg-white text-red-500 rounded-full p-1 transition-colors duration-200">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="w-full py-3 bg-gradient-custom text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200 flex items-center justify-center opacity-70 cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-magic-wand mr-2"></i>
+                        <span>开始分割</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 右侧：结果展示 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold mb-2 text-dark">分割结果</h3>
+                    <p class="text-gray-500 text-sm">处理后的图像将显示在这里</p>
+                </div>
+
+                <div id="result-container" class="relative min-h-[300px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                    <div id="empty-state" class="text-center p-6">
+                        <i class="fa-solid fa-image text-5xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-400">请上传图像并进行分割</p>
+                    </div>
+
+                    <div id="loading-state" class="hidden text-center">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                        <p class="text-gray-600">处理中...</p>
+                    </div>
+
+                    <img id="result-image" src="" alt="分割结果" class="hidden w-full h-auto max-h-[500px] object-contain rounded-lg">
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 gap-4">
+                    <button id="download-mask" class="py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center opacity-50 cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-download mr-2"></i> 下载掩码
+                    </button>
+                    <button id="download-overlay" class="py-2 bg-secondary text-white rounded-lg font-medium hover:bg-secondary/90 transition-colors duration-200 flex items-center justify-center opacity-50 cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-download mr-2"></i> 下载叠加图
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 特性展示 -->
+        <section class="mt-16 max-w-6xl mx-auto">
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa-solid fa-object-group text-primary text-2xl"></i>
+                        <h3 class="text-xl font-bold">智能图像分割平台</h3>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        利用前沿AI技术，提供高精度图像分割解决方案，助力科研与产业创新。
+                    </p>
+                    <div class="flex space-x-4">
+                        <!-- 仅保留 GitHub 图标 -->
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors duration-200">
+                            <i class="fa-brands fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 删除其他三个网格列（快速链接、资源、联系我们） -->
+
+            </div>
+
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2025 智能图像分割平台. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                navbar.classList.add('py-2', 'shadow-lg');
+                navbar.classList.remove('py-3', 'shadow-md');
+            } else {
+                navbar.classList.add('py-3', 'shadow-md');
+                navbar.classList.remove('py-2', 'shadow-lg');
+            }
+        });
+
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            if (mobileMenu.classList.contains('hidden')) {
+                menuToggle.innerHTML = '<i class="fa-solid fa-bars text-xl"></i>';
+            } else {
+                menuToggle.innerHTML = '<i class="fa-solid fa-xmark text-xl"></i>';
+            }
+        });
+
+        // 文件上传处理
+        const dropArea = document.getElementById('drop-area');
+        const imageUpload = document.getElementById('image-upload');
+        const previewContainer = document.getElementById('preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImage = document.getElementById('remove-image');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultContainer = document.getElementById('result-container');
+        const emptyState = document.getElementById('empty-state');
+        const loadingState = document.getElementById('loading-state');
+        const resultImage = document.getElementById('result-image');
+        const downloadMask = document.getElementById('download-mask');
+        const downloadOverlay = document.getElementById('download-overlay');
+        const uploadForm = document.getElementById('upload-form');
+
+        // 拖放区域事件
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.classList.add('border-primary', 'bg-blue-50');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('border-primary', 'bg-blue-50');
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                handleFiles(files[0]);
+            }
+        }
+
+        // 文件选择事件
+        imageUpload.addEventListener('change', function() {
+            if (this.files.length) {
+                handleFiles(this.files[0]);
+            }
+        });
+
+        // 处理文件
+        function handleFiles(file) {
+            if (!file.type.match('image.*')) {
+                alert('请选择图片文件！');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                submitBtn.classList.add('opacity-100', 'cursor-pointer');
+            }
+
+            reader.readAsDataURL(file);
+        }
+
+        // 移除图片
+        removeImage.addEventListener('click', function() {
+            imagePreview.src = '';
+            previewContainer.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            submitBtn.classList.remove('opacity-100', 'cursor-pointer');
+        });
+
+        // 表单提交处理
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!imageUpload.files.length) {
+                alert('请选择图片！');
+                return;
+            }
+
+            // 显示加载状态
+            emptyState.classList.add('hidden');
+            resultImage.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            // 禁用下载按钮
+            downloadMask.disabled = true;
+            downloadMask.classList.add('opacity-50', 'cursor-not-allowed');
+            downloadMask.classList.remove('opacity-100', 'cursor-pointer');
+
+            downloadOverlay.disabled = true;
+            downloadOverlay.classList.add('opacity-50', 'cursor-not-allowed');
+            downloadOverlay.classList.remove('opacity-100', 'cursor-pointer');
+
+            // 提交表单
+            const formData = new FormData(this);
+
+            fetch('/segment', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // 隐藏加载状态，显示结果
+                loadingState.classList.add('hidden');
+                resultImage.classList.remove('hidden');
+
+                // 创建图片URL
+                const imageUrl = URL.createObjectURL(blob);
+                resultImage.src = imageUrl;
+
+                // 启用下载按钮
+                downloadMask.disabled = false;
+                downloadMask.classList.remove('opacity-50', 'cursor-not-allowed');
+                downloadMask.classList.add('opacity-100', 'cursor-pointer');
+
+                downloadOverlay.disabled = false;
+                downloadOverlay.classList.remove('opacity-50', 'cursor-not-allowed');
+                downloadOverlay.classList.add('opacity-100', 'cursor-pointer');
+
+                // 设置下载链接
+                downloadMask.onclick = function() {
+                    downloadImage(blob, 'segmentation_mask.png');
+                };
+
+                // 对于叠加图，我们需要在客户端合成
+                downloadOverlay.onclick = function() {
+                    createOverlayImage(imageUrl, blob);
+                };
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('处理过程中出现错误，请重试！');
+                loadingState.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            });
+        });
+
+        // 下载图片
+        function downloadImage(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 创建叠加图
+        function createOverlayImage(originalImageUrl, maskBlob) {
+            // 创建画布
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // 创建原始图像
+            const originalImage = new Image();
+            originalImage.src = originalImageUrl;
+
+            // 创建掩码图像
+            const maskImage = new Image();
+            maskImage.src = URL.createObjectURL(maskBlob);
+
+            originalImage.onload = function() {
+                maskImage.onload = function() {
+                    // 设置画布尺寸
+                    canvas.width = originalImage.width;
+                    canvas.height = originalImage.height;
+
+                    // 绘制原始图像
+                    ctx.drawImage(originalImage, 0, 0);
+
+                    // 设置掩码图像的混合模式
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.6)'; // 蓝色半透明
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // 绘制掩码
+                    ctx.drawImage(maskImage, 0, 0, canvas.width, canvas.height);
+
+                    // 下载叠加图
+                    canvas.toBlob(function(blob) {
+                        downloadImage(blob, 'segmentation_overlay.png');
+                    }, 'image/png');
+                };
+            };
+        }
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+
+                    // 如果是移动端，点击后关闭菜单
+                    if (window.innerWidth < 768 && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        menuToggle.innerHTML = '<i class="fa-solid fa-bars text-xl"></i>';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
