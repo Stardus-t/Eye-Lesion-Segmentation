@@ -2,17 +2,12 @@ Eye-Lesion-Segmentation（眼科病变区域分割系统）
 
 项目概述
 
-本项目致力于开发一个高精度的眼科医学图像分割模型，利用 Vision Transformer 架构自动识别和分割眼底图像中的病变区域。系统支持从数据预处理、模型训练到临床诊断的全流程，并提供直观的可视化界面辅助医生决策。
+本项目致力于开发一个高精度的眼科医学图像分割网站，目前利用 Vision Transformer 架构自动识别和分割眼底图像中的病变区域。系统支持从数据预处理、模型训练到临床诊断的全流程，并提供直观的可视化界面辅助医生决策。
 
 应用场景
 糖尿病视网膜病变早期筛查
 青光眼相关病变识别
 眼科临床诊断辅助工具
-
-技术亮点
-1. ViT 架构：采用 Vision Transformer 提取全局上下文特征，提升病变边界分割精度
-2. 混合损失函数：结合 Dice Loss 和 BCE Loss 优化医学图像分割任务
-3. 数据增强策略：针对眼科图像特点设计的旋转、缩放、弹性变换等增强方法
 
 安装依赖
 
@@ -40,6 +35,10 @@ python inference.py --image_path sample_images/eye_lesion.jpg --model_path check
 
 
 左：原始眼底图像 | 中：真实病变区域掩码 | 右：模型分割结果
+
+# 网站演示
+![image](https://github.com/user-attachments/assets/4ec28036-699e-4f6d-a6ad-6ff87063296a)
+
 
 临床应用建议
 
